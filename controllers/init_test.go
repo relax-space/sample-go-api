@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"os"
-	"go-api/factory"
+	"sample-go-api/factory"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/pangpanglabs/goutils/echomiddleware"
@@ -28,11 +28,8 @@ func init() {
 	echoApp = echo.New()
 	echoApp.Validator = &Validator{}
 	configMap := map[string]interface{}{
-<<<<<<< HEAD
+
 		"fruits_api": os.Getenv("Fruit_Url"),
-=======
-		"key": os.Getenv("XXX"),
->>>>>>> base project
 	}
 	setContextValueMiddleware := setContextValue(&configMap, db)
 	handleWithFilter = func(handlerFunc echo.HandlerFunc, c echo.Context) error {
