@@ -22,7 +22,7 @@ func (d FruitApiController) Init(g *echo.Group) {
 func (FruitApiController) GetAll(c echo.Context) error {
 	var v SearchInput
 	if err := c.Bind(&v); err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+		return ReturnApiListFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
 	if v.MaxResultCount == 0 {
 		v.MaxResultCount = DefaultMaxResultCount
@@ -30,10 +30,10 @@ func (FruitApiController) GetAll(c echo.Context) error {
 
 	totalCount, items, err := models.Fruit{}.GetAll(c.Request().Context(), v.Sortby, v.Order, v.SkipCount, v.MaxResultCount)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return ReturnApiListFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
 	if len(items) == 0 {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, err)
+		return ReturnApiListFail(c, http.StatusNotFound, ApiErrorNotFound, err)
 	}
 	return ReturnApiListSucc(c, http.StatusOK, totalCount, items)
 }

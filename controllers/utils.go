@@ -107,6 +107,31 @@ func ReturnApiListSucc(c echo.Context, status int, totalCount int64, items inter
 		Result:  ArrayResult{TotalCount: totalCount, Items: items},
 	})
 }
+func ReturnApiListFail(c echo.Context, status int, apiError ApiError, err error, v ...map[string]interface{}) error {
+	logContext := behaviorlog.FromCtx(c.Request().Context())
+	if logContext != nil {
+		if err != nil {
+			logContext.WithError(err)
+		}
+		if len(v) > 0 {
+			logContext.WithBizAttrs(v[0])
+		}
+	}
+
+	str := ""
+	if err != nil {
+		str = err.Error()
+	}
+	return c.JSON(status, ApiResult{
+		Success: false,
+		Result:  ArrayResult{TotalCount: 0, Items: make([]string, 0)},
+		Error: ApiError{
+			Code:    apiError.Code,
+			Message: apiError.Message,
+			Details: str,
+		},
+	})
+}
 
 func setFlashMessage(c echo.Context, m map[string]string) {
 	var flashValue string
