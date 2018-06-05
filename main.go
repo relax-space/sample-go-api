@@ -121,7 +121,10 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.Sync(new(models.Fruit))
+	db.Sync(
+		new(models.Fruit),
+		new(models.Store),
+	)
 	return db, nil
 }
 
