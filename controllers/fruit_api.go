@@ -67,12 +67,36 @@ func (FruitApiController) create(c echo.Context, fruit *models.Fruit) error {
 	return ReturnApiSucc(c, http.StatusCreated, fruit)
 }
 
-func (FruitApiController) GetOne(c echo.Context) error {
+func (d FruitApiController) GetOne(c echo.Context) error {
+	full := c.QueryParam("full")
+	if len(full) != 0 {
+		return d.GetOneFull(c)
+	} else {
+		return d.GetOnePart(c)
+	}
+}
+
+func (FruitApiController) GetOnePart(c echo.Context) error {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err, map[string]interface{}{"id": c.Param("id")})
 	}
 	has, v, err := models.Fruit{}.GetById(c.Request().Context(), id)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+	}
+	if !has {
+		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+	}
+	return ReturnApiSucc(c, http.StatusOK, v)
+}
+
+func (FruitApiController) GetOneFull(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err, map[string]interface{}{"id": c.Param("id")})
+	}
+	has, v, err := models.Fruit{}.GetFullById(c.Request().Context(), id)
 	if err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
