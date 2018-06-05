@@ -17,6 +17,7 @@ type Fruit struct {
 	StoreCode string `json:"storeCode"`
 	CreatedAt string `json:"createdAt" xorm:"created"`
 	UpdatedAt string `json:"updatedAt" xorm:"updated"`
+	DeletedAt string `json:"deletedAt" xorm:"deleted"`
 }
 
 func (d *Fruit) Create(ctx context.Context) (affectedRow int64, err error) {
