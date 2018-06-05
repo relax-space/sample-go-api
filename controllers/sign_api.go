@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -27,7 +28,7 @@ func (SignApiController) SignPost(c echo.Context) error {
 	}
 	defer c.Request().Body.Close()
 	c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(b))
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]*json.RawMessage, 0)
 	err = json.Unmarshal(b, &m)
 	if err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
@@ -36,14 +37,17 @@ func (SignApiController) SignPost(c echo.Context) error {
 	var signParam string
 	if len(m) != 0 {
 		if signObj, ok := m["sign"]; ok {
-			signParam = signObj.(string)
+			if signObj != nil {
+				signParam = string(*signObj)
+			}
 			delete(m, "sign")
 		}
 	}
 	//1. check sign
-	isOk := sign.CheckMd5Sign(base.JoinMapObject(m), signKey, signParam)
+	isOk := sign.CheckMd5Sign(base.JoinMapJsonRawMessage(m), signKey, signParam)
 	if isOk != true {
-		return ReturnApiFail(c, http.StatusOK, ApiErrorSign, nil, map[string]interface{}{"sign-string": signParam, "sign-param": base.JoinMapObject(m)})
+		errMsg := map[string]interface{}{"sign-string": signParam, "sign-param": base.JoinMapJsonRawMessage(m)}
+		return ReturnApiFail(c, http.StatusOK, ApiErrorSign, errors.New(string(b)), errMsg)
 	}
 	//2. parse param from body
 	var v Book
