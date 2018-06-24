@@ -27,8 +27,9 @@ func (FruitApiController) GetAll(c echo.Context) error {
 	if v.MaxResultCount == 0 {
 		v.MaxResultCount = DefaultMaxResultCount
 	}
-
-	totalCount, items, err := models.Fruit{}.GetAll(c.Request().Context(), v.Sortby, v.Order, v.SkipCount, v.MaxResultCount)
+	name := c.QueryParam("name")
+	totalCount, items, err := models.Fruit{}.GetAll(c.Request().Context(), v.Sortby, v.Order, v.SkipCount, v.MaxResultCount,
+		&models.FruitSearchOption{Name: name})
 	if err != nil {
 		return ReturnApiListFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
