@@ -14,10 +14,23 @@ import (
 )
 
 func Test_fruit_GetAll(t *testing.T) {
-	req := httptest.NewRequest(echo.GET, "/", nil)
+	req := httptest.NewRequest(echo.GET, "/?name=2", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	test.Ok(t, handleWithFilter(FruitApiController{}.GetAll, echoApp.NewContext(req, rec)))
+	fmt.Println(string(rec.Body.Bytes()))
+	fmt.Printf("http status:%v", rec.Result().StatusCode)
+}
+
+func Test_fruit_GetFullById(t *testing.T) {
+	req := httptest.NewRequest(echo.GET, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := echoApp.NewContext(req, rec)
+	c.SetPath("fruits/:id?full=true")
+	c.SetParamNames("id")
+	c.SetParamValues("2")
+	test.Ok(t, handleWithFilter(FruitApiController{}.GetOneFull, c))
 	fmt.Println(string(rec.Body.Bytes()))
 	fmt.Printf("http status:%v", rec.Result().StatusCode)
 }
