@@ -3,10 +3,11 @@ package http_req
 import (
 	"context"
 	"fmt"
-	"goutils/httpreq"
 	"net/http"
 	"sample-go-api/factory"
 	"sample-go-api/models"
+
+	"github.com/pangpanglabs/goutils/httpreq"
 
 	"github.com/relax-space/go-kit/model"
 )
