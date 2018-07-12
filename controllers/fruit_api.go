@@ -62,7 +62,7 @@ func (FruitApiController) create(c echo.Context, fruit *models.Fruit) error {
 	if err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
-	if affectedRow == 0 {
+	if affectedRow == int64(0) {
 		return ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
 	}
 	return ReturnApiSucc(c, http.StatusCreated, fruit)
@@ -135,7 +135,7 @@ func (FruitApiController) update(c echo.Context, v *models.Fruit) error {
 	if err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
-	if affectedRow == 0 {
+	if affectedRow == int64(0) {
 		return ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
 	}
 	return ReturnApiSucc(c, http.StatusNoContent, nil)
@@ -161,7 +161,7 @@ func (FruitApiController) delete(c echo.Context, id int64) error {
 	if err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
-	if affectedRow == 0 {
+	if affectedRow == int64(0) {
 		return ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
 	}
 	return ReturnApiSucc(c, http.StatusNoContent, nil)
