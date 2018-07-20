@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"sample-go-api/models"
 	"strconv"
@@ -50,20 +51,26 @@ func (d FruitApiController) Create(c echo.Context) error {
 	return d.create(c, &v)
 }
 
-func (FruitApiController) create(c echo.Context, fruit *models.Fruit) error {
+func (FruitApiController) create(c echo.Context, fruit *models.Fruit) (err error) {
 	has, _, err := models.Fruit{}.GetById(c.Request().Context(), fruit.Id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if has {
-		return ReturnApiFail(c, http.StatusOK, ApiErrorHasExist, err)
+		ReturnApiFail(c, http.StatusOK, ApiErrorHasExist, nil)
+		err = errors.New(ApiErrorHasExist.Message)
+		return
 	}
 	affectedRow, err := fruit.Create(c.Request().Context())
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if affectedRow == int64(0) {
-		return ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
+		ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, nil)
+		err = errors.New(ApiErrorNotChanged.Message)
+		return
 	}
 	return ReturnApiSucc(c, http.StatusCreated, fruit)
 }
@@ -77,34 +84,44 @@ func (d FruitApiController) GetOne(c echo.Context) error {
 	}
 }
 
-func (FruitApiController) GetOnePart(c echo.Context) error {
+func (FruitApiController) GetOnePart(c echo.Context) (err error) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err, map[string]interface{}{"id": c.Param("id")})
+		ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err, map[string]interface{}{"id": c.Param("id")})
+		return
 	}
 	has, v, err := models.Fruit{}.GetById(c.Request().Context(), id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if !has {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+		ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+		err = errors.New(ApiErrorNotFound.Message)
+		return
 	}
-	return ReturnApiSucc(c, http.StatusOK, v)
+	err = ReturnApiSucc(c, http.StatusOK, v)
+	return
 }
 
-func (FruitApiController) GetOneFull(c echo.Context) error {
+func (FruitApiController) GetOneFull(c echo.Context) (err error) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err, map[string]interface{}{"id": c.Param("id")})
+		ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err, map[string]interface{}{"id": c.Param("id")})
+		return
 	}
 	has, v, err := models.Fruit{}.GetFullById(c.Request().Context(), id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if !has {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+		ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+		err = errors.New(ApiErrorNotFound.Message)
+		return
 	}
-	return ReturnApiSucc(c, http.StatusOK, v)
+	err = ReturnApiSucc(c, http.StatusOK, v)
+	return
 }
 
 func (d FruitApiController) Update(c echo.Context) error {
@@ -123,22 +140,29 @@ func (d FruitApiController) Update(c echo.Context) error {
 	return d.update(c, &v)
 }
 
-func (FruitApiController) update(c echo.Context, v *models.Fruit) error {
+func (FruitApiController) update(c echo.Context, v *models.Fruit) (err error) {
 	has, _, err := models.Fruit{}.GetById(c.Request().Context(), v.Id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if !has {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, err)
+		ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+		err = errors.New(ApiErrorNotFound.Message)
+		return
 	}
 	affectedRow, err := v.Update(c.Request().Context(), v.Id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if affectedRow == int64(0) {
-		return ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
+		ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
+		err = errors.New(ApiErrorNotChanged.Message)
+		return
 	}
-	return ReturnApiSucc(c, http.StatusNoContent, nil)
+	err = ReturnApiSucc(c, http.StatusNoContent, nil)
+	return
 }
 
 func (d FruitApiController) Delete(c echo.Context) error {
@@ -149,20 +173,27 @@ func (d FruitApiController) Delete(c echo.Context) error {
 	return d.delete(c, id)
 }
 
-func (FruitApiController) delete(c echo.Context, id int64) error {
+func (FruitApiController) delete(c echo.Context, id int64) (err error) {
 	has, _, err := models.Fruit{}.GetById(c.Request().Context(), id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if !has {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, err)
+		ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+		err = errors.New(ApiErrorNotFound.Message)
+		return
 	}
 	affectedRow, err := models.Fruit{}.Delete(c.Request().Context(), id)
 	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
 	}
 	if affectedRow == int64(0) {
-		return ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
+		ReturnApiFail(c, http.StatusOK, ApiErrorNotChanged, err)
+		err = errors.New(ApiErrorNotChanged.Message)
+		return
 	}
-	return ReturnApiSucc(c, http.StatusNoContent, nil)
+	err = ReturnApiSucc(c, http.StatusNoContent, nil)
+	return
 }
