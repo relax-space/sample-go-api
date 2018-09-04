@@ -14,6 +14,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /go/src/sample-go-api
 COPY --from=builder /go/src/sample-go-api/*.yml /go/src/sample-go-api/
 COPY --from=builder /go/src/sample-go-api/sample-go-api /go/src/sample-go-api/
+COPY --from=builder /go/src/sample-go-api/sample-go-api/sample_view.sql /go/src/sample-go-api/
 COPY --from=builder /swagger-ui/ /go/src/sample-go-api/swagger-ui/
 COPY --from=builder /go/src/sample-go-api/index.html /go/src/sample-go-api/swagger-ui/
 
