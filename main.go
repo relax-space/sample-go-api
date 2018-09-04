@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -31,6 +33,8 @@ func main() {
 	fruitConnEnv := flag.String("FRUIT_CONN", os.Getenv("FRUIT_CONN"), "FRUIT_CONN")
 	sampleUrl := flag.String("Sample_Url", os.Getenv("Sample_Url"), "Sample_Url")
 	jwtEnv := flag.String("JWT_SECRET", os.Getenv("JWT_SECRET"), "JWT_SECRET")
+
+	fmt.Println(*fruitConnEnv)
 
 	flag.Parse()
 
@@ -125,6 +129,14 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 		new(models.Fruit),
 		new(models.Store),
 	)
+	b, err := ioutil.ReadFile("sample_view.sql")
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.Import(bytes.NewBuffer(b))
+	if err != nil {
+		return nil, err
+	}
 	return db, nil
 }
 
