@@ -21,7 +21,7 @@ import (
 	configutil "github.com/pangpanglabs/goutils/config"
 	"github.com/pangpanglabs/goutils/echomiddleware"
 
-	"go-api/factory"
+	"sample-go-api/factory"
 )
 
 var (
