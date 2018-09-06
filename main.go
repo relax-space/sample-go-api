@@ -21,7 +21,7 @@ import (
 	configutil "github.com/pangpanglabs/goutils/config"
 	"github.com/pangpanglabs/goutils/echomiddleware"
 
-	"sample-go-api/factory"
+	"go-api/factory"
 )
 
 var (
@@ -33,9 +33,6 @@ func main() {
 	fruitConnEnv := flag.String("FRUIT_CONN", os.Getenv("FRUIT_CONN"), "FRUIT_CONN")
 	sampleUrl := flag.String("Sample_Url", os.Getenv("Sample_Url"), "Sample_Url")
 	jwtEnv := flag.String("JWT_SECRET", os.Getenv("JWT_SECRET"), "JWT_SECRET")
-
-	fmt.Println(*fruitConnEnv)
-
 	flag.Parse()
 
 	var c Config
