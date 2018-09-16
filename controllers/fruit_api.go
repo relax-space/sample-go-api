@@ -226,3 +226,54 @@ func (FruitApiController) delete(c echo.Context, id int64) (err error) {
 	err = ReturnApiSucc(c, http.StatusNoContent, nil)
 	return
 }
+
+type ChanSessionApiController struct {
+}
+
+func (d ChanSessionApiController) Init(g *echo.Group) {
+	g.POST("", d.ChanSession)
+}
+
+/*
+localhost:8080/fruits
+ {
+        "code": "AA01",
+        "name": "Apple",
+        "color": "",
+        "price": 2,
+        "store_code": ""
+    }
+*/
+func (d ChanSessionApiController) ChanSession(c echo.Context) error {
+	var v struct {
+		FruitId   int64  `json:"fId"`
+		FruitCode string `json:"fCode"`
+		StoreId   int64  `json:"sId"`
+		StoreCode string `json:"sCode"`
+	}
+	if err := c.Bind(&v); err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+	}
+	if err := c.Validate(v); err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+	}
+	return d.chanSession(c,
+		&models.Fruit{
+			Id:   v.FruitId,
+			Code: v.FruitCode,
+		},
+		&models.Store{
+			Id:   v.StoreId,
+			Code: v.StoreCode,
+		},
+	)
+}
+
+func (ChanSessionApiController) chanSession(c echo.Context, fruit *models.Fruit, store *models.Store) (err error) {
+	err = fruit.ChanSession(c.Request().Context(), fruit, store)
+	if err != nil {
+		ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+		return
+	}
+	return ReturnApiSucc(c, http.StatusCreated, fruit)
+}

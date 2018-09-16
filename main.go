@@ -57,6 +57,7 @@ func main() {
 	})
 	e.Static("/docs", "./swagger-ui")
 	controllers.FruitApiController{}.Init(e.Group("/fruits"))
+	controllers.ChanSessionApiController{}.Init(e.Group("/chan"))
 	controllers.SignApiController{}.Init(e.Group("/sign"))
 	controllers.FruitApiController{}.Init(e.Group("/v1/fruits"))
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
@@ -65,6 +66,7 @@ func main() {
 			ignore := []string{
 				"/ping",
 				"/fruits",
+				"/chan",
 				"/sign",
 				"/swagger",
 				"/docs",

@@ -1,9 +1,12 @@
 package models
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 
 	"github.com/go-xorm/xorm"
+	uuid "github.com/satori/go.uuid"
 )
 
 func setSortOrder(q *xorm.Session, sortby, order []string) error {
@@ -39,4 +42,11 @@ func setSortOrder(q *xorm.Session, sortby, order []string) error {
 		}
 	}
 	return nil
+}
+
+func UuIdInt64() (uuId uint64) {
+	u1, _ := uuid.NewV4()
+	buf := bytes.NewBuffer(u1.Bytes())
+	binary.Read(buf, binary.BigEndian, &uuId)
+	return
 }

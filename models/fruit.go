@@ -2,6 +2,8 @@ package models
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/go-xorm/xorm"
 
@@ -9,21 +11,16 @@ import (
 )
 
 type Fruit struct {
-	Id        int64  `json:"id" xorm:"int64 notnull autoincr pk 'id'"`
-	Code      string `json:"code"`
-	Name      string `json:"name"`
-	Color     string `json:"color"`
-	Price     int64  `json:"price"`
-	StoreCode string `json:"storeCode"`
-	CreatedAt string `json:"createdAt" xorm:"created"`
-	UpdatedAt string `json:"updatedAt" xorm:"updated"`
-	DeletedAt string `json:"deletedAt" xorm:"deleted"`
-}
-
-type Store struct {
-	Id   int64  `json:"id" xorm:"pk autoincr 'id'"`
-	Code string `json:"code"`
-	Name string `json:"name"`
+	Id        int64      `json:"id" xorm:"int64 notnull autoincr pk 'id'"`
+	Code      string     `json:"code"`
+	Name      string     `json:"name"`
+	Color     string     `json:"color"`
+	Price     int64      `json:"price"`
+	StoreCode string     `json:"storeCode"`
+	CreatedAt *time.Time `json:"createdAt" xorm:"created"`
+	UpdatedAt *time.Time `json:"updatedAt" xorm:"updated"`
+	DeletedAt *time.Time `json:"deletedAt" xorm:"deleted"`
+	UniqueId  uint64     `json:"uniqueId"`
 }
 
 func (d *Fruit) Create(ctx context.Context) (affectedRow int64, err error) {
@@ -64,10 +61,9 @@ func (Fruit) GetAll(ctx context.Context, sortby, order []string, offset, limit i
 		}
 		return q
 	}
-	q := *queryBuilder()
 
 	errc := make(chan error)
-	go func(qNew xorm.Session) {
+	go func(qNew *xorm.Session) {
 		v, err := qNew.Count(&Fruit{})
 		if err != nil {
 			errc <- err
@@ -76,15 +72,15 @@ func (Fruit) GetAll(ctx context.Context, sortby, order []string, offset, limit i
 		totalCount = v
 		errc <- nil
 
-	}(q)
+	}(queryBuilder())
 
-	go func(qNew xorm.Session) {
+	go func(qNew *xorm.Session) {
 		if err := qNew.Limit(limit, offset).Find(&items); err != nil {
 			errc <- err
 			return
 		}
 		errc <- nil
-	}(q)
+	}(queryBuilder())
 
 	if err := <-errc; err != nil {
 		return 0, nil, err
@@ -101,5 +97,55 @@ func (d *Fruit) Update(ctx context.Context, id int64) (affectedRow int64, err er
 
 func (Fruit) Delete(ctx context.Context, id int64) (affectedRow int64, err error) {
 	affectedRow, err = factory.DB(ctx).Where("id=?", id).Delete(&Fruit{})
+	return
+}
+
+func (Fruit) ChanSession(ctx context.Context, updateFruit *Fruit, insertStore *Store) (err error) {
+	q := factory.DB(ctx)
+	errc := make(chan error)
+	updateFruit.UniqueId = UuIdInt64()
+	go func(qNew xorm.Session, fruit *Fruit) {
+		v, err := qNew.ID(fruit.Id).Update(fruit)
+		if err != nil {
+			errc <- err
+			return
+		} else if v == int64(0) {
+			errc <- errors.New("update fruit error")
+		}
+
+		errc <- nil
+
+	}(*q, updateFruit)
+
+	go func(qNew xorm.Session, store *Store) {
+		v, err := qNew.Insert(store)
+		if err != nil {
+			errc <- err
+			return
+		} else if v == int64(0) {
+			errc <- errors.New("insert store error")
+		}
+
+		errc <- nil
+
+	}(*q, insertStore)
+
+	if err := <-errc; err != nil {
+		return err
+	}
+	if err := <-errc; err != nil {
+		return err
+	}
+	return
+}
+
+type Store struct {
+	Id   int64  `json:"id" xorm:"pk autoincr 'id'"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+func (d *Store) Create(ctx context.Context) (affectedRow int64, err error) {
+	affectedRow, err = factory.DB(ctx).Insert(d)
 	return
 }
