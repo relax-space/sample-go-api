@@ -1,4 +1,4 @@
-package kit
+package sample
 
 type Job struct {
 	OnTime  int `json:"onTime"`
