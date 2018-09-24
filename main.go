@@ -59,6 +59,7 @@ func main() {
 	controllers.FruitApiController{}.Init(e.Group("/fruits"))
 	controllers.ChanSessionApiController{}.Init(e.Group("/chan"))
 	controllers.SignApiController{}.Init(e.Group("/sign"))
+	controllers.KafkaApiController{}.Init(e.Group(""))
 	controllers.FruitApiController{}.Init(e.Group("/v1/fruits"))
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(*jwtEnv),
@@ -66,6 +67,8 @@ func main() {
 			ignore := []string{
 				"/ping",
 				"/fruits",
+				"/producers",
+				"/events",
 				"/chan",
 				"/sign",
 				"/swagger",
@@ -96,13 +99,20 @@ func main() {
 	e.Debug = c.Debug
 
 	configMap := map[string]interface{}{
-		"sample_url": *sampleUrl,
+		"sample_url":   *sampleUrl,
+		"sample_kafka": &c.Sample.Kafka,
 	}
 	setContextValueMiddleware := setContextValue(&configMap)
 	handleWithFilter = func(handlerFunc echo.HandlerFunc, c echo.Context) error {
 		return setContextValueMiddleware(handlerFunc)(c)
 	}
 	e.Use(setContextValueMiddleware)
+
+	//consumer
+	go func(k echomiddleware.KafkaConfig) {
+		controllers.KafkaApiController{}.Consumer(&k)
+	}(c.Sample.Kafka)
+
 	if err := e.Start(":" + c.HttpPort); err != nil {
 		log.Println(err)
 	}
@@ -144,6 +154,9 @@ type Config struct {
 		Kafka echomiddleware.KafkaConfig
 	}
 	BehaviorLog struct {
+		Kafka echomiddleware.KafkaConfig
+	}
+	Sample struct {
 		Kafka echomiddleware.KafkaConfig
 	}
 	Trace struct {

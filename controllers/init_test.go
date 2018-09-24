@@ -1,4 +1,4 @@
-package controllers
+package controllers_test
 
 import (
 	"context"
@@ -28,8 +28,11 @@ func init() {
 	echoApp = echo.New()
 	echoApp.Validator = &Validator{}
 	configMap := map[string]interface{}{
-
 		"fruits_api": os.Getenv("Fruit_Url"),
+		"sample_kafka": &echomiddleware.KafkaConfig{
+			Brokers: []string{"127.0.0.1:9092"},
+			Topic:   "kafka_test_topic",
+		},
 	}
 	setContextValueMiddleware := setContextValue(&configMap, db)
 	handleWithFilter = func(handlerFunc echo.HandlerFunc, c echo.Context) error {
@@ -63,4 +66,23 @@ type Validator struct{}
 func (v *Validator) Validate(i interface{}) error {
 	_, err := govalidator.ValidateStruct(i)
 	return err
+}
+
+type Config struct {
+	Logger struct {
+		Kafka echomiddleware.KafkaConfig
+	}
+	BehaviorLog struct {
+		Kafka echomiddleware.KafkaConfig
+	}
+	Sample struct {
+		Kafka echomiddleware.KafkaConfig
+	}
+	Trace struct {
+		Zipkin echomiddleware.ZipkinConfig
+	}
+
+	Debug    bool
+	Service  string
+	HttpPort string
 }

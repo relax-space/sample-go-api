@@ -50,6 +50,14 @@ func Config(ctx context.Context, key string) interface{} {
 	return config(ctx, key)
 }
 
+func ConfigKafka(ctx context.Context, key string) *echomiddleware.KafkaConfig {
+	value, has := Config(ctx, key).(*echomiddleware.KafkaConfig)
+	if has {
+		return value
+	}
+	return new(echomiddleware.KafkaConfig)
+}
+
 func ConfigString(ctx context.Context, key string) string {
 	value, has := config(ctx, key).(string)
 	if has {
