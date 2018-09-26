@@ -1,3 +1,8 @@
+sample:
+  kafka:
+        brokers:
+          - 10.173.208.142:9092
+        topic: kafka_test_topic
 logger:
   kafka:
         brokers:
