@@ -1,13 +1,12 @@
 package models
 
 import (
-	"context"
 	"time"
 
-	"sample-go-api/factory"
+	"github.com/go-xorm/xorm"
 )
 
-type FruitConsumer struct {
+type FruitLog struct {
 	Id        int64      `json:"id" xorm:"int64 notnull autoincr pk 'id'"`
 	Code      string     `json:"code"`
 	Name      string     `json:"name"`
@@ -18,9 +17,15 @@ type FruitConsumer struct {
 	UpdatedAt *time.Time `json:"updatedAt" xorm:"updated"`
 	DeletedAt *time.Time `json:"deletedAt" xorm:"deleted"`
 	UniqueId  uint64     `json:"uniqueId"`
+	Success   bool       `json:"success"`
 }
 
-func (d *FruitConsumer) Create(ctx context.Context) (affectedRow int64, err error) {
-	affectedRow, err = factory.DB(ctx).Insert(d)
+func (d *FruitLog) Create(db *xorm.Engine) (affectedRow int64, err error) {
+	affectedRow, err = db.MustCols("success").Insert(d)
+	return
+}
+
+func (FruitLog) CreateBatch(db *xorm.Engine, fruitLogs []*FruitLog) (affectedRow int64, err error) {
+	affectedRow, err = db.MustCols("success").Insert(&fruitLogs)
 	return
 }

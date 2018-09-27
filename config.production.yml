@@ -1,9 +1,17 @@
+sample:
+  kafka:
+        brokers:
+          - 10.173.208.142:9092
+        topic: kafka_test_topic
+fruit:
+  kafka:
+        brokers:
+          - 10.173.208.142:9092
+        topic: fruit_topic
 logger:
   kafka:
         brokers:
-          - 10.26.205.20:9092
-          - 10.27.116.104:9092
-          - 10.27.121.103:9092
+          - 10.173.208.142:9092
         topic: logger
 behaviorLog:
     kafka:

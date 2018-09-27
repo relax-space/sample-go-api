@@ -1,21 +1,22 @@
-package models
+package models_test
 
 import (
 	"fmt"
+	"sample-go-api/models"
 	"testing"
 
 	"github.com/relax-space/go-kit/test"
 )
 
 func TestFruitCreate(t *testing.T) {
-	f := &Fruit{
+	f := &models.Fruit{
 		Code: "123",
 	}
 	affectedRow, err := f.Create(ctx)
 	fmt.Println(affectedRow, err, f)
 }
 func TestStoreCreate(t *testing.T) {
-	f := &Store{
+	f := &models.Store{
 		Id:   3,
 		Code: "4",
 	}
@@ -24,7 +25,7 @@ func TestStoreCreate(t *testing.T) {
 }
 
 func TestFruitUpdate(t *testing.T) {
-	f := &Fruit{
+	f := &models.Fruit{
 		Code: "123",
 	}
 	affectedRow, err := f.Update(ctx, 71)
@@ -32,24 +33,24 @@ func TestFruitUpdate(t *testing.T) {
 }
 
 func TestFruitDelete(t *testing.T) {
-	affectedRow, err := Fruit{}.Delete(ctx, 2)
+	affectedRow, err := models.Fruit{}.Delete(ctx, 2)
 	fmt.Println(affectedRow, err)
 }
 
 func TestFruitGetAll(t *testing.T) {
-	total, items, err := Fruit{}.GetAll(ctx, nil, nil, 0, 2, nil)
+	total, items, err := models.Fruit{}.GetAll(ctx, nil, nil, 0, 2, nil)
 	fmt.Println(total, items, err)
 }
 func TestFruitGetById(t *testing.T) {
-	has, v, err := Fruit{}.GetById(ctx, 1)
+	has, v, err := models.Fruit{}.GetById(ctx, 1)
 	fmt.Println(has, v, err)
 }
 func TestChanSession_norm(t *testing.T) {
 	for index := 0; index < 100; index++ {
-		err := Fruit{}.ChanSession(ctx, &Fruit{
+		err := models.Fruit{}.ChanSession(ctx, &models.Fruit{
 			Id:   71,
 			Code: "127",
-		}, &Store{
+		}, &models.Store{
 			Code: "6",
 		})
 		test.Ok(t, err)
@@ -58,10 +59,10 @@ func TestChanSession_norm(t *testing.T) {
 
 }
 func TestChanSession_transaction(t *testing.T) {
-	err := Fruit{}.ChanSession(ctx, &Fruit{
+	err := models.Fruit{}.ChanSession(ctx, &models.Fruit{
 		Id:   71,
 		Code: "128",
-	}, &Store{
+	}, &models.Store{
 		Id:   8,
 		Code: "7",
 	})

@@ -1,4 +1,4 @@
-package models
+package models_test
 
 import (
 	"context"
@@ -11,15 +11,16 @@ import (
 )
 
 var ctx context.Context
+var db *xorm.Engine
 
 func init() {
 	runtime.GOMAXPROCS(1)
-	xormEngine, err := xorm.NewEngine("mysql", os.Getenv("FRUIT_CONN"))
+	var err error
+	db, err = xorm.NewEngine("mysql", os.Getenv("FRUIT_CONN"))
 	if err != nil {
 		panic(err)
 	}
-	xormEngine.ShowSQL(true)
-	xormEngine.Sync(new(Fruit))
+	db.ShowSQL(true)
 
-	ctx = context.WithValue(context.Background(), echomiddleware.ContextDBName, xormEngine.NewSession())
+	ctx = context.WithValue(context.Background(), echomiddleware.ContextDBName, db.NewSession())
 }

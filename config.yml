@@ -3,6 +3,11 @@ sample:
         brokers:
           - 127.0.0.1:9092
         topic: kafka_test_topic
+fruit:
+  kafka:
+        brokers:
+          - 127.0.0.1:9092
+        topic: fruit_topic
 debug: true
 service: sample-go-api
 httpport: 8080

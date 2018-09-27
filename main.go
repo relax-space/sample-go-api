@@ -101,6 +101,7 @@ func main() {
 	configMap := map[string]interface{}{
 		"sample_url":   *sampleUrl,
 		"sample_kafka": &c.Sample.Kafka,
+		"fruit_kafka":  &c.Fruit.Kafka,
 	}
 	setContextValueMiddleware := setContextValue(&configMap)
 	handleWithFilter = func(handlerFunc echo.HandlerFunc, c echo.Context) error {
@@ -112,6 +113,10 @@ func main() {
 	go func(k echomiddleware.KafkaConfig) {
 		controllers.KafkaApiController{}.Consumer(&k)
 	}(c.Sample.Kafka)
+
+	go func(mysqlDb *xorm.Engine, k echomiddleware.KafkaConfig) {
+		controllers.KafkaApiController{}.ConsumerFruit(mysqlDb, &k)
+	}(db, c.Fruit.Kafka)
 
 	if err := e.Start(":" + c.HttpPort); err != nil {
 		log.Println(err)
@@ -136,6 +141,7 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 	}
 	db.Sync(
 		new(models.Fruit),
+		new(models.FruitLog),
 		new(models.Store),
 	)
 	b, err := ioutil.ReadFile("sample_view.sql")
@@ -162,7 +168,9 @@ type Config struct {
 	Trace struct {
 		Zipkin echomiddleware.ZipkinConfig
 	}
-
+	Fruit struct {
+		Kafka echomiddleware.KafkaConfig
+	}
 	Debug    bool
 	Service  string
 	HttpPort string
