@@ -9,9 +9,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"sample-go-api/controllers"
 	"sample-go-api/models"
 	"strings"
+	"syscall"
 
 	"github.com/asaskevich/govalidator"
 	_ "github.com/go-sql-driver/mysql"
@@ -108,6 +110,16 @@ func main() {
 		return setContextValueMiddleware(handlerFunc)(c)
 	}
 	e.Use(setContextValueMiddleware)
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Kill, os.Interrupt)
+	go func() {
+		for s := range signals {
+			switch s {
+			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+				os.Exit(0)
+			}
+		}
+	}()
 
 	//consumer
 	go func(k echomiddleware.KafkaConfig) {
