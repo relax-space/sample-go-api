@@ -29,24 +29,12 @@ func (d KafkaApiController) Init(g *echo.Group) {
 }
 
 func (d KafkaApiController) Producer(c echo.Context) error {
-	var producer *kafka.Producer
-	config := factory.ConfigKafka(c.Request().Context(), "sample_kafka")
 
-	if p, err := kafka.NewProducer(config.Brokers, config.Topic, func(c *sarama.Config) {
-		c.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
-		c.Producer.Compression = sarama.CompressionGZIP     // Compress messages
-		c.Producer.Flush.Frequency = 500 * time.Millisecond // Flush batches every 500ms
-
-	}); err != nil {
-		logrus.Error("Create Kafka Producer Error", err)
-	} else {
-		producer = p
-	}
 	var dto = TestDto{
 		"xiao",
 		18,
 	}
-	producer.Send(&dto)
+	KafkaSample{}.GetInstance(c.Request().Context()).Producer.Send(&dto)
 	fmt.Println("kafka producer")
 
 	return c.String(http.StatusOK, "success")
@@ -140,6 +128,6 @@ func (d KafkaApiController) ConsumerFruit(db *xorm.Engine, k *echomiddleware.Kaf
 		}
 		fmt.Println("kafka consumerFruit")
 		affectedRow, err := (models.FruitLog{}).CreateBatch(db, v)
-		fmt.Println( fmt.Sprintf("affectedRow:%v, err:%v", affectedRow, err) )
+		fmt.Println(fmt.Sprintf("affectedRow:%v, err:%v", affectedRow, err))
 	}
 }
