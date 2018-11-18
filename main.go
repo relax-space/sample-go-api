@@ -61,6 +61,7 @@ func main() {
 	controllers.FruitApiController{}.Init(e.Group("/fruits"))
 	controllers.ChanSessionApiController{}.Init(e.Group("/chan"))
 	controllers.SignApiController{}.Init(e.Group("/sign"))
+	controllers.RedirectController{}.Init(e.Group("/jump"))
 	controllers.KafkaApiController{}.Init(e.Group(""))
 	controllers.FruitApiController{}.Init(e.Group("/v1/fruits"))
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
@@ -71,6 +72,7 @@ func main() {
 				"/fruits",
 				"/producers",
 				"/events",
+				"/jump",
 				"/chan",
 				"/sign",
 				"/swagger",
@@ -121,15 +123,16 @@ func main() {
 		}
 	}()
 
-	//consumer
-	go func(k echomiddleware.KafkaConfig) {
-		controllers.KafkaApiController{}.Consumer(&k)
-	}(c.Sample.Kafka)
+	if *appEnv == "kafka" {
+		//consumer
+		go func(k echomiddleware.KafkaConfig) {
+			controllers.KafkaApiController{}.Consumer(&k)
+		}(c.Sample.Kafka)
 
-	go func(mysqlDb *xorm.Engine, k echomiddleware.KafkaConfig) {
-		controllers.KafkaApiController{}.ConsumerFruit(mysqlDb, &k)
-	}(db, c.Fruit.Kafka)
-
+		go func(mysqlDb *xorm.Engine, k echomiddleware.KafkaConfig) {
+			controllers.KafkaApiController{}.ConsumerFruit(mysqlDb, &k)
+		}(db, c.Fruit.Kafka)
+	}
 	if err := e.Start(":" + c.HttpPort); err != nil {
 		log.Println(err)
 	}
