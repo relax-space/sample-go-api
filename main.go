@@ -123,7 +123,8 @@ func main() {
 		}
 	}()
 
-	if *appEnv == "kafka" {
+	consumerEnable := false
+	if consumerEnable == true {
 		//consumer
 		go func(k echomiddleware.KafkaConfig) {
 			controllers.KafkaApiController{}.Consumer(&k)
