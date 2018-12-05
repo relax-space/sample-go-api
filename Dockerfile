@@ -1,23 +1,23 @@
 FROM pangpanglabs/golang:builder AS builder
 
-RUN go get github.com/fatih/structs \
-    && go get github.com/relax-space/go-kit/...
-
-ADD . /go/src/sample-go-api
 WORKDIR /go/src/sample-go-api
+COPY . .
+# disable cgo
 ENV CGO_ENABLED=0
-RUN go build -o sample-go-api
-
-FROM alpine
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /go/src/sample-go-api
-COPY --from=builder /go/src/sample-go-api/*.yml /go/src/sample-go-api/
-COPY --from=builder /go/src/sample-go-api/sample-go-api /go/src/sample-go-api/
-COPY --from=builder /go/src/sample-go-api/sample_view.sql /go/src/sample-go-api/
-COPY --from=builder /swagger-ui/ /go/src/sample-go-api/swagger-ui/
-COPY --from=builder /go/src/sample-go-api/index.html /go/src/sample-go-api/swagger-ui/
-
+# build steps
+RUN echo ">>> 1: go version" && go version
+RUN echo ">>> 2: go get" && go get -v -d
+RUN echo ">>> 3: go install" && go install
+ 
+# make application docker image use alpine
+FROM pangpanglabs/alpine-ssl
+WORKDIR /go/bin/
+# copy config files to image
+COPY --from=builder /go/src/sample-go-api/*.yml ./
+COPY --from=builder /go/src/sample-go-api/sample_view.sql ./
+COPY --from=builder /swagger-ui/ ./swagger-ui/
+COPY --from=builder /go/src/sample-go-api/index.html ./swagger-ui/
+# copy execute file to image
+COPY --from=builder /go/bin/sample-go-api ./
 EXPOSE 8080
-
 CMD ["./sample-go-api"]
