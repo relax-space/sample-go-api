@@ -48,8 +48,10 @@ func (Fruit) GetById(ctx context.Context, id int64) (has bool, fruit *Fruit, err
 	has, err = factory.DB(ctx).Where("id=?", id).Get(fruit)
 	return
 }
-func (Fruit) GetAll(ctx context.Context, sortby, order []string, offset, limit int, options *FruitSearchOption) (totalCount int64, items []Fruit, err error) {
-	queryBuilder := func() *xorm.Session {
+func (Fruit) GetAll(ctx context.Context, sortby, order []string,
+	offset, limit int, options *FruitSearchOption) (totalCount int64, items []*Fruit, err error) {
+
+	q := func() xorm.Session {
 		q := factory.DB(ctx)
 		if err := setSortOrder(q, sortby, order); err != nil {
 			factory.Logger(ctx).Error(err)
@@ -59,35 +61,29 @@ func (Fruit) GetAll(ctx context.Context, sortby, order []string, offset, limit i
 				q.Where("name like ?", options.Name+"%")
 			}
 		}
-		return q
+		return *q
 	}
 
-	errc := make(chan error)
-	go func(qNew *xorm.Session) {
+	errc, totalCountc, fruitc := make(chan error), make(chan int64, 1), make(chan []*Fruit, 1)
+	go func(qNew xorm.Session) {
 		v, err := qNew.Count(&Fruit{})
-		if err != nil {
-			errc <- err
-			return
+		totalCountc <- v
+		errc <- err
+	}(q())
+
+	go func(qNew xorm.Session) {
+		var v []*Fruit
+		err := qNew.Limit(limit, offset).Find(&v)
+		fruitc <- v
+		errc <- err
+	}(q())
+	for i := 0; i < 2; i++ {
+		if err := <-errc; err != nil {
+			return 0, nil, err
 		}
-		totalCount = v
-		errc <- nil
-
-	}(queryBuilder())
-
-	go func(qNew *xorm.Session) {
-		if err := qNew.Limit(limit, offset).Find(&items); err != nil {
-			errc <- err
-			return
-		}
-		errc <- nil
-	}(queryBuilder())
-
-	if err := <-errc; err != nil {
-		return 0, nil, err
 	}
-	if err := <-errc; err != nil {
-		return 0, nil, err
-	}
+	totalCount = <-totalCountc
+	items = <-fruitc
 	return
 }
 func (d *Fruit) Update(ctx context.Context, id int64) (affectedRow int64, err error) {
