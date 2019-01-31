@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  web:
+    image: xiaoxinmiao/fruit:0.0.1
+    networks:
+      - fruitnet
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+    environment: 
+      - FRUIT_CONN=root:1234@tcp(172.20.0.2:3306)/fruit
+
+  database:
+    image: mysql:5.7.15
+    networks:
+      - fruitnet
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=fruit
+networks:
+  fruitnet:
+    driver: bridge
